@@ -22,6 +22,12 @@ You can install the latest version from GitHub with `remotes`:
 remotes::install_github("jtanevski/kasumi")
 ```
 
+**kasumi** currently depends on **mistyR** version 1.99.10 or higher. You can install the latest version from GitHub:
+
+```r
+remotes::install_github("jtanevski/mistyR")
+```
+
 ## Citation
 If you use **kasumi** for your research please cite the [following publication](https://doi.org/10.1101/2024.03.06.583691): 
 
