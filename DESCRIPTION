@@ -1,13 +1,31 @@
 Package: kasumi
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Title: Identification of persistent local patterns in spatial omics data
+Version: 0.99.0
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: GPL (>= 3)
+    person(given = "Jovan", 
+           family ="Tanevski", 
+           email = "jovan.tanevski@uni-heidelberg.de", 
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-7177-1003"))
+Description: Kasumi is a method for the identification of spatially localized 
+    neighborhoods of intra- and intercellular relationships, persistent across 
+    samples and conditions. Kasumi learns compressed explainable representations 
+    of spatial omics samples while preserving relevant biological signals that are 
+    readily deployable for data exploration and hypothesis generation, facilitating 
+    translational tasks.
+License: GPL-3
+URL: https://github.com/jtanevski/kasumi/
+BugReports: https://github.com/jtanevski/kasumi/issues
+biocViews: Software, BiomedicalInformatics, CellBiology, SystemsBiology, 
+    Regression, DecisionTree, SingleCell, Spatial
+Depends: R (>= 4.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Imports: 
-    mistyR
+    dplyr,
+    furrr,
+    future,
+    mistyR (>= 1.99.10),
+    tibble,
+    tidyr

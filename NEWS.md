@@ -1,3 +1,3 @@
-# kasumi (development version)
+# kasumi 0.99.0
 
-* Initial submission.
+hello kasumi
