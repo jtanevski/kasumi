@@ -49,7 +49,7 @@ view composition.
 library(dplyr)
 
 # get the expression data
-data("synthetic", package="mistyR")
+data("synthetic", package = "mistyR")
 expr <- synthetic[[1]] \%>\% select(-c(row, col, type))
 # get the coordinates for each cell
 pos <- synthetic[[1]] \%>\% select(row, col)

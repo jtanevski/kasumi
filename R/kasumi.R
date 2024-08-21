@@ -35,7 +35,7 @@
 #' library(dplyr)
 #'
 #' # get the expression data
-#' data("synthetic", package="mistyR")
+#' data("synthetic", package = "mistyR")
 #' expr <- synthetic[[1]] %>% select(-c(row, col, type))
 #' # get the coordinates for each cell
 #' pos <- synthetic[[1]] %>% select(row, col)
@@ -49,8 +49,29 @@
 #' @export
 run_kasumi <- function(views, positions, window, overlap = 50,
                        sample.id = "sample",
-                       results.db = paste0(sample.id,".sqm"), minu = 50,
+                       results.db = paste0(sample.id, ".sqm"), minu = 50,
                        ...) {
+  db.file <- R.utils::getAbsolutePath(results.db)
+  db.lock <- paste0(db.file, ".lock")
+
+  if (!file.exists(db.file)) {
+    current.lock <- filelock::lock(db.lock)
+    mistyR:::create_sqm(db.file)
+    filelock::unlock(current.lock)
+    rm(current.lock)
+  }
+
+  current.lock <- filelock::lock(db.lock)
+  sqm <- DBI::dbConnect(RSQLite::SQLite(), db.file)
+  if (!DBI::dbExistsTable(sqm, "kwc")) {
+    DBI::dbCreateTable(
+      sqm, "kwc",
+      c(sample = "TEXT", Target = "TEXT", value = "REAL")
+    )
+  }
+  DBI::dbDisconnect(sqm)
+  filelock::unlock(current.lock)
+
   x <- tibble::tibble(
     xl = seq(
       min(positions[, 1]),
@@ -98,9 +119,42 @@ run_kasumi <- function(views, positions, window, overlap = 50,
         results.db,
         ...
       ))
+
+      kwc(
+        filtered.views[["intraview"]],
+        paste0(sample.id, "/", xl, "_", yl, "_", xu, "_", yu),
+        results.db
+      )
     }
   }, .progress = TRUE, .options = furrr::furrr_options(seed = TRUE))
 
   future::plan(old.plan)
+
+  if (file.exists(db.lock)) file.remove(db.lock)
   return(results.db)
+}
+
+
+#' Calculate window composition and store
+#' @noRd
+kwc <- function(intra.view, sample.id, results.db) {
+  composition <- (intra.view %>% colSums()) / sum(intra.view)
+
+  to.write <- t(composition) %>%
+    tibble::as_tibble() %>%
+    tidyr::pivot_longer(
+      tidyr::everything(),
+      names_to = "Target",
+      values_to = "value"
+    ) %>%
+    tibble::add_column(sample = sample.id, .before = 1)
+
+  db.file <- R.utils::getAbsolutePath(results.db)
+  db.lock <- paste0(db.file, ".lock")
+
+  current.lock <- filelock::lock(db.lock)
+  sqm <- DBI::dbConnect(RSQLite::SQLite(), db.file)
+  DBI::dbAppendTable(sqm, "kwc", to.write)
+  DBI::dbDisconnect(sqm)
+  filelock::unlock(current.lock)
 }

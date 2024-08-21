@@ -1,6 +1,6 @@
 Package: kasumi
 Title: Identification of persistent local patterns in spatial omics data
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: 
     person(given = "Jovan", 
            family ="Tanevski", 
@@ -21,11 +21,7 @@ biocViews: Software, BiomedicalInformatics, CellBiology, SystemsBiology,
 Depends: R (>= 4.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Imports: 
-    dplyr,
-    furrr,
-    future,
-    mistyR (>= 1.99.10),
-    tibble,
-    tidyr
+    DBI, dplyr, filelock, furrr, future, mistyR (>= 1.99.10), R.utils, RSQLite, 
+    stringr, tibble, tidyr
