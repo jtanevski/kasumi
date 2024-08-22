@@ -1,3 +1,8 @@
+# kasumi 0.99.3
+
+independent persistence
+classification and signed model reliance
+
 # kasumi 0.99.2
 
 representation extraction and clustering
