@@ -61,14 +61,15 @@ kmeans <- function(representation, k = 10, seed = 1) {
   return(clust$clusters)
 }
 
-
-
+#' Use Kasumi representation for downstream classification
+#'
+#' @export
 downstream_classify <- function(kasumi.clusters, target, dir = "auto", seed = 1) {
   representation <- kasumi.clusters %>%
     dplyr::select(-id) %>%
     tibble::add_column(target = target)
 
-  with_seed(
+  withr::with_seed(
     seed,
     suppressWarnings(
       model <- caret::train(target ~ ., representation,
@@ -87,7 +88,9 @@ downstream_classify <- function(kasumi.clusters, target, dir = "auto", seed = 1)
 }
 
 
-
+#' Calculate signed Model Reliance
+#'
+#' @export
 sMR <- function(kasumi.clusters, target, seed = 1) {
   representation <- kasumi.clusters %>%
     dplyr::select(-id) %>%
@@ -100,7 +103,7 @@ sMR <- function(kasumi.clusters, target, seed = 1) {
   dir.sign <- ifelse(dir == ">", -1, 1)
   cat(paste0("AUC: ", eorig$auc))
 
-  with_seed(
+  withr::with_seed(
     seed,
     splitr <- stats::runif(nrow(representation)) %>% rank()
   )
@@ -123,8 +126,10 @@ sMR <- function(kasumi.clusters, target, seed = 1) {
 
   toreturn <- tibble::tibble(Cluster = as.factor(names(mr)), sMR = mr)
 
-  print(ggplot2::ggplot(toreturn %>% dplyr::mutate(Cluster = forcats::fct_reorder(Cluster, sMR)),
-                        ggplot2::aes(x = Cluster, y = sMR)) +
+  print(ggplot2::ggplot(
+    toreturn %>% dplyr::mutate(Cluster = forcats::fct_reorder(Cluster, sMR)),
+    ggplot2::aes(x = Cluster, y = sMR)
+  ) +
     ggplot2::geom_segment(ggplot2::aes(x = Cluster, xend = Cluster, y = 0, yend = sMR)) +
     ggplot2::geom_point(ggplot2::aes(x = Cluster, y = sMR, color = sMR)) +
     ggplot2::scale_color_steps2(low = "darkgreen", mid = "white", high = "blue3") +
@@ -142,4 +147,47 @@ sMR <- function(kasumi.clusters, target, seed = 1) {
     ))
 
   return(toreturn)
+}
+
+# from unaggregated kasumi.clusters
+#' Collect Kasumi cluster description
+#'
+#' @export
+collect_kasumi_cluster <- function(kasumi.clusters, cluster, db.file) {
+  sm.repr.all <- kasumi.clusters
+
+  left <- sm.repr.all %>%
+    dplyr::filter(dplyr::if_any(!!cluster)) %>%
+    dplyr::select(id, xcenter, ycenter)
+
+  dbcon <- DBI::dbConnect(RSQLite::SQLite(), db.file)
+  samples <- DBI::dbGetQuery(dbcon, "SELECT DISTINCT sample FROM contributions") %>%
+    unlist()
+  matching <- grep(paste0("(", paste0(unique(left$id), collapse = "|"), ")"),
+    samples,
+    value = TRUE
+  )
+  DBI::dbDisconnect(dbcon)
+
+  right <- tibble::tibble(sample = matching) %>%
+    dplyr::mutate(
+      id = stringr::str_extract(sample, ".*/") %>% stringr::str_remove("/"),
+      box = stringr::str_extract(sample, "/[0-9].*$") %>% stringr::str_remove("/")
+    ) %>%
+    dplyr::rowwise(id) %>%
+    dplyr::summarize(sample = sample, rebox = box %>%
+      stringr::str_split("_", simplify = T) %>%
+      as.numeric() %>% list(), .groups = "drop") %>%
+    dplyr::rowwise(id) %>%
+    dplyr::summarize(
+      sample = sample,
+      xcenter = (rebox[3] + rebox[1]) / 2,
+      ycenter = (rebox[4] + rebox[2]) / 2, .groups = "drop"
+    )
+
+  pattern <- paste0("(", paste0(left %>%
+    dplyr::left_join(right, by = c("id", "xcenter", "ycenter")) %>%
+    dplyr::pull(sample), collapse = "|"), ")")
+
+  collect_results(db.file, pattern)
 }

@@ -1,3 +1,7 @@
+# kasumi 0.99.4
+
+collect kasumi cluster
+
 # kasumi 0.99.3
 
 independent persistence

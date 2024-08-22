@@ -1,7 +1,7 @@
 # Kasumi runner
 # Copyleft (ɔ) 2024 Jovan Tanevski [jovan.tanevski@uni-heidelberg.de]
 
-
+#' @importFrom rlang !! :=
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage("Kasumi is able to run computationally intensive functions
   in parallel. Please consider specifying a future::plan(). For example by running

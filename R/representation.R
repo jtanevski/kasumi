@@ -14,13 +14,13 @@ extract_representation <- function(kasumi.results, cutoff = 0, trim = 1) {
                              type = "i",
                              intersect.targets = FALSE, trim = trim
     )
-    sig[is.na(sig)] <- floor(min(sig %>% select(-sample), na.rm = TRUE))
+    sig[is.na(sig)] <- floor(min(sig %>% dplyr::select(-sample), na.rm = TRUE))
     sig <- sig %>% dplyr::mutate(dplyr::across(
       !sample,
       ~ ifelse(.x <= cutoff, 0, .x)
     ))
 
-    keep <- which(sig %>% dplyr::select(-sample, -contains("intra_")) %>%
+    keep <- which(sig %>% dplyr::select(-sample, -dplyr::contains("intra_")) %>%
                     rowSums() != 0)
 
     samps <- sig %>%
@@ -101,7 +101,7 @@ extract_clusters <- function(kasumi.representation,
   }
 
   cluster.repr <- purrr::map(clusters, ~ .x == seq(length(unique(clusters)))) %>%
-    reduce(rbind) %>%
+    purrr::reduce(rbind) %>%
     tibble::as_tibble(.name_repair = "unique") %>%
     dplyr::rename_with(~ stringr::str_remove_all(.x, "\\."))
 
@@ -143,10 +143,10 @@ aggregate_clusters <- function(kasumi.clusters) {
   kasumi.clusters %>%
     dplyr::select(-c(xcenter, ycenter)) %>%
     dplyr::group_by(id) %>%
-    group_split(.keep = FALSE) %>%
+    dplyr::group_split(.keep = FALSE) %>%
     purrr::map_dfr(~ colSums(.x) / sum(.x)) %>%
     tibble::add_column(
-      id = kasumi.clusters %>% pull(id) %>% unique(),
+      id = kasumi.clusters %>% dplyr::pull(id) %>% unique(),
       .before = 1
     )
 }
