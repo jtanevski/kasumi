@@ -4,7 +4,7 @@
 #' Importance of relationships or KWC composition
 #'
 #' @export
-extract_representation <- function(kasumi.results, cutoff = 0, trim = 1) {
+extract_representation <- function(kasumi.results, cutoff = 0, trim = 1, ...) {
   repr.type <- ifelse(tibble::is_tibble(kasumi.results),
                       "composition", "relationship"
   )
@@ -12,7 +12,8 @@ extract_representation <- function(kasumi.results, cutoff = 0, trim = 1) {
   if (repr.type == "relationship") {
     sig <- extract_signature(kasumi.results,
                              type = "i",
-                             intersect.targets = FALSE, trim = trim
+                             intersect.targets = FALSE, trim = trim,
+                             ...
     )
     sig[is.na(sig)] <- floor(min(sig %>% dplyr::select(-sample), na.rm = TRUE))
     sig <- sig %>% dplyr::mutate(dplyr::across(
