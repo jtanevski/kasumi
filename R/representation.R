@@ -115,6 +115,7 @@ extract_clusters <- function(kasumi.representation,
 
 
 # representation is either kasumi.clusters or aggregated kasumi.clusters
+#' @export
 persistent_clusters <- function(representation, parameter = 0.1) {
   per.sample <- representation %>% dplyr::select(-id)
 
