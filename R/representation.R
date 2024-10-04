@@ -1,7 +1,7 @@
 # trim only for relationship, cutoff can apply in general?
 #' Extract first kasumi representation
 #'
-#' Importance of relationships or KWC composition
+#' Importance of relationships or WCC composition
 #'
 #' @export
 extract_representation <- function(kasumi.results, cutoff = 0, trim = 1, ...) {

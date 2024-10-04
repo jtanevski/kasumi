@@ -1,3 +1,7 @@
+# kasumi 0.99.5
+
+kwc -> wcc
+
 # kasumi 0.99.4
 
 collect kasumi cluster

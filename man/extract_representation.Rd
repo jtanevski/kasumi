@@ -4,8 +4,8 @@
 \alias{extract_representation}
 \title{Extract first kasumi representation}
 \usage{
-extract_representation(kasumi.results, cutoff = 0, trim = 1)
+extract_representation(kasumi.results, cutoff = 0, trim = 1, ...)
 }
 \description{
-Importance of relationships or KWC composition
+Importance of relationships or WCC composition
 }

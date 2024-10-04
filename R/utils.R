@@ -1,6 +1,6 @@
-#' Collect KWC data
+#' Collect WCC data
 #'
-#' Collect KWC composition data per window produced by \code{\link{run_kasumi}()}.
+#' Collect Window Composition Clustering result per window produced by \code{\link{run_kasumi}()}.
 #'
 #' @param db.file path to database file with raw results from
 #'     \code{\link{run_kasumi}()}.
@@ -10,12 +10,12 @@
 #'        \var{Target} in each window and \var{sample}.
 #'
 #' @export
-collect_kwc <- function(db.file, sample.pattern = ".") {
+collect_wcc <- function(db.file, sample.pattern = ".") {
   sqm <- DBI::dbConnect(RSQLite::SQLite(), db.file)
 
-  message("\nCollecting KWC data")
+  message("\nCollecting WCC data")
 
-  try.filter <- DBI::dbReadTable(sqm, "kwc") %>%
+  try.filter <- DBI::dbReadTable(sqm, "wcc") %>%
     tibble::as_tibble() %>%
     dplyr::filter(stringr::str_detect(sample, sample.pattern))
 

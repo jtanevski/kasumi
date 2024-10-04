@@ -1,6 +1,6 @@
 Package: kasumi
 Title: Identification of persistent local patterns in spatial omics data
-Version: 0.99.4
+Version: 0.99.5
 Authors@R: 
     person(given = "Jovan", 
            family ="Tanevski", 

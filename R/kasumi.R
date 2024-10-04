@@ -63,9 +63,9 @@ run_kasumi <- function(views, positions, window, overlap = 50,
 
   current.lock <- filelock::lock(db.lock)
   sqm <- DBI::dbConnect(RSQLite::SQLite(), db.file)
-  if (!DBI::dbExistsTable(sqm, "kwc")) {
+  if (!DBI::dbExistsTable(sqm, "wcc")) {
     DBI::dbCreateTable(
-      sqm, "kwc",
+      sqm, "wcc",
       c(sample = "TEXT", Target = "TEXT", value = "REAL")
     )
   }
@@ -120,7 +120,7 @@ run_kasumi <- function(views, positions, window, overlap = 50,
         ...
       ))
 
-      kwc(
+      wcc(
         filtered.views[["intraview"]],
         paste0(sample.id, "/", xl, "_", yl, "_", xu, "_", yu),
         results.db
@@ -137,7 +137,7 @@ run_kasumi <- function(views, positions, window, overlap = 50,
 
 #' Calculate window composition and store
 #' @noRd
-kwc <- function(intra.view, sample.id, results.db) {
+wcc <- function(intra.view, sample.id, results.db) {
   composition <- (intra.view %>% colSums()) / sum(intra.view)
 
   to.write <- t(composition) %>%
@@ -154,7 +154,7 @@ kwc <- function(intra.view, sample.id, results.db) {
 
   current.lock <- filelock::lock(db.lock)
   sqm <- DBI::dbConnect(RSQLite::SQLite(), db.file)
-  DBI::dbAppendTable(sqm, "kwc", to.write)
+  DBI::dbAppendTable(sqm, "wcc", to.write)
   DBI::dbDisconnect(sqm)
   filelock::unlock(current.lock)
 }
