@@ -1,6 +1,6 @@
 Package: kasumi
 Title: Identification of persistent local patterns in spatial omics data
-Version: 0.99.5
+Version: 0.99.6
 Authors@R: 
     person(given = "Jovan", 
            family ="Tanevski", 
@@ -26,3 +26,7 @@ Imports:
     caret, ClusterR, DBI, dplyr, forcats, filelock, furrr, future, ggplot2, 
     igraph, mistyR (>= 1.99.10), pROC, proxy, purrr, rlang, R.utils, RSQLite, 
     stringr, tibble, tidyr, withr
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

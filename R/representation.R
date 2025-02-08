@@ -79,8 +79,8 @@ extract_representation <- function(kasumi.results, cutoff = 0, trim = 1, ...) {
 }
 
 
-
-# Extract cluster based representation
+#' Extract cluster based representation
+#'
 #' @export
 extract_clusters <- function(kasumi.representation,
                              type = c("leiden", "kmeans"), sim = 0.8, res = 0.8,
@@ -91,7 +91,7 @@ extract_clusters <- function(kasumi.representation,
     clusters <- leiden(
       kasumi.representation %>%
         dplyr::select(-c(id, xcenter, ycenter)),
-      sim, res, seed
+      sim, res, "cosine", seed
     )
   } else {
     clusters <- kmeans(
@@ -114,13 +114,16 @@ extract_clusters <- function(kasumi.representation,
 }
 
 
-# representation is either kasumi.clusters or aggregated kasumi.clusters
+#' Identify persistent clusters
+#'
+#' Representation is either raw kasumi.clusters or aggregated kasumi.clusters
+#'
 #' @export
-persistent_clusters <- function(representation, parameter = 0.1) {
-  per.sample <- representation %>% dplyr::select(-id)
+persistent_clusters <- function(kasumi.clusters, parameter = 0.1) {
+  per.sample <- kasumi.clusters %>% dplyr::select(-id)
 
-  if (length(unique(representation %>% dplyr::pull(id))) < nrow(representation)) {
-    per.sample <- representation %>%
+  if (length(unique(kasumi.clusters %>% dplyr::pull(id))) < nrow(kasumi.clusters)) {
+    per.sample <- kasumi.clusters %>%
       dplyr::select(-c(xcenter, ycenter)) %>%
       dplyr::group_by(id) %>%
       dplyr::group_split(.keep = FALSE) %>%
@@ -138,7 +141,9 @@ persistent_clusters <- function(representation, parameter = 0.1) {
     colnames()
 }
 
-# Represent each sample by its cluster composition
+#' Represent each sample by its cluster composition
+#' @param kasumi.clusters clusters calculated from the extracted representation
+#'
 #' @export
 aggregate_clusters <- function(kasumi.clusters) {
   # originally persistent clusters were removed after distribution

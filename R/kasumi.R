@@ -103,7 +103,7 @@ run_kasumi <- function(views, positions, window, overlap = 50,
   old.plan <- future::plan()
   future::plan(list(old.plan, future::sequential))
   message("\nSliding")
-  tiles %>% furrr::future_pwalk(\(xl, xu, yl, yu){
+  wcc.write <- tiles %>% furrr::future_pmap_dfr(\(xl, xu, yl, yu){
     selected.rows <- which(
       positions[, 1] >= xl & positions[, 1] <= xu &
         positions[, 2] >= yl & positions[, 2] <= yu
@@ -128,6 +128,15 @@ run_kasumi <- function(views, positions, window, overlap = 50,
     }
   }, .progress = TRUE, .options = furrr::furrr_options(seed = TRUE))
 
+
+  current.lock <- filelock::lock(db.lock)
+  sqm <- DBI::dbConnect(RSQLite::SQLite(), db.file)
+
+  DBI::dbAppendTable(sqm, "wcc", wcc.write)
+
+  DBI::dbDisconnect(sqm)
+  filelock::unlock(current.lock)
+
   future::plan(old.plan)
 
   if (file.exists(db.lock)) file.remove(db.lock)
@@ -135,7 +144,7 @@ run_kasumi <- function(views, positions, window, overlap = 50,
 }
 
 
-#' Calculate window composition and store
+#' Calculate window composition
 #' @noRd
 wcc <- function(intra.view, sample.id, results.db) {
   composition <- (intra.view %>% colSums()) / sum(intra.view)
@@ -149,12 +158,5 @@ wcc <- function(intra.view, sample.id, results.db) {
     ) %>%
     tibble::add_column(sample = sample.id, .before = 1)
 
-  db.file <- R.utils::getAbsolutePath(results.db)
-  db.lock <- paste0(db.file, ".lock")
-
-  current.lock <- filelock::lock(db.lock)
-  sqm <- DBI::dbConnect(RSQLite::SQLite(), db.file)
-  DBI::dbAppendTable(sqm, "wcc", to.write)
-  DBI::dbDisconnect(sqm)
-  filelock::unlock(current.lock)
+  return(to.write)
 }

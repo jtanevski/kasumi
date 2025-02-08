@@ -1,3 +1,9 @@
+# kasumi 0.99.6
+
+wcc concurrency fix
+cluster representation fix
+
+
 # kasumi 0.99.5
 
 kwc -> wcc

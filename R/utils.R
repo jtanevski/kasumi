@@ -94,7 +94,7 @@ downstream_classify <- function(kasumi.clusters, target, dir = "auto", seed = 1)
 sMR <- function(kasumi.clusters, target, seed = 1) {
   representation <- kasumi.clusters %>%
     dplyr::select(-id) %>%
-    tibble::add_column(target = target)
+    tibble::add_column(target = as.factor(target))
 
   model <- stats::glm(target ~ ., representation, family = "binomial")
 
@@ -115,9 +115,9 @@ sMR <- function(kasumi.clusters, target, seed = 1) {
     colnames() %>%
     purrr::map_dbl(\(cname){
       downstream_classify(
-        representation %>% dplyr::select(-nas) %>%
+        kasumi.clusters %>% dplyr::select(-nas) %>%
           dplyr::mutate(!!cname := representation[splitr, cname] %>% unlist()),
-        dir, seed
+        target, dir, seed
       )$auc
     })
 
