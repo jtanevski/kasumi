@@ -122,8 +122,7 @@ run_kasumi <- function(views, positions, window, overlap = 50,
 
       wcc(
         filtered.views[["intraview"]],
-        paste0(sample.id, "/", xl, "_", yl, "_", xu, "_", yu),
-        results.db
+        paste0(sample.id, "/", xl, "_", yl, "_", xu, "_", yu)
       )
     }
   }, .progress = TRUE, .options = furrr::furrr_options(seed = TRUE))
@@ -146,7 +145,7 @@ run_kasumi <- function(views, positions, window, overlap = 50,
 
 #' Calculate window composition
 #' @noRd
-wcc <- function(intra.view, sample.id, results.db) {
+wcc <- function(intra.view, sample.id) {
   composition <- (intra.view %>% colSums()) / sum(intra.view)
 
   to.write <- t(composition) %>%
