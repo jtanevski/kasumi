@@ -1,0 +1,206 @@
+---
+title: "Structural analysis of CODEX CTCL data with Kasumi"
+author: "Jovan Tanevski"
+date: "`r Sys.Date()`"
+package: kasumi
+output:
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Structural analysis of CODEX CTCL data with Kasumi}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(kasumi)
+library(tidyverse)
+library(readxl)
+```
+
+Download [Supplementary Data 1]((https://www.nature.com/articles/s41467-021-26974-6#Sec32)) from the publication Phillips, D., Matusiak, M., Gutierrez, B.R. et al. **Immune cell topography predicts response to PD-1 blockade in cutaneous T cell lymphoma**. *Nat Commun* 12, 6726 (2021). <https://doi.org/10.1038/s41467-021-26974-6>
+
+```{r}
+if(!file.exists("CTCL.xlsx")){
+  download.file("https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-021-26974-6/MediaObjects/41467_2021_26974_MOESM3_ESM.xlsx", "CTCL.xlsx")
+}
+```
+
+Read data, select from the data the pre-treatment responder (Group 1) and non-responder (Group 2) samples (spot ids). Represent each sample by the one-hot encoded cell types (all.cells.ctcl) and their corresponding positions (all.positions.ctcl)
+
+```{r message=FALSE}
+ctcl <- read_xlsx("CTCL.xlsx", skip=2)
+
+spots <- ctcl %>%
+  filter(Groups %in% c(1, 2)) %>%
+  pull(Spots) %>%
+  unique()
+
+outcome <- ctcl %>%
+  filter(Groups %in% c(1, 2)) %>%
+  group_by(Spots, Patients) %>%
+  summarize(Groups = Groups[1], .groups = "drop")
+
+cts <- ctcl %>%
+  pull(ClusterName) %>%
+  unique()
+
+all.cells.ctcl <- spots %>% map(\(id){
+  ctcl %>%
+    filter(Spots == id) %>%
+    pull(ClusterName) %>%
+    map(~ .x == cts) %>%
+    rlist::list.rbind() %>%
+    `colnames<-`(make.names(cts)) %>%
+    as_tibble(.name_repair = "unique")
+})
+
+names(all.cells.ctcl) <- spots
+
+all.positions.ctcl <- spots %>% map(\(id){
+  ctcl %>%
+    filter(Spots == id) %>%
+    select(X, Y) %>%
+    `colnames<-`(c("x", "y"))
+})
+
+names(all.positions.ctcl) <- spots
+```
+
+Alternatively each sample can be represented by the mean marker abundances in each cell
+
+```{r, eval = FALSE}
+
+panel <- colnames(ctcl)[10:68][-c(53,56,58)]
+
+all.cells.ctcl <- spots %>% map(\(id){
+  ctcl %>%
+    filter(Spots == id) %>%
+    select(all_of(panel)) %>%
+    rename_with(make.names)
+})
+```
+
+For each sample, create a view composition consisting of an intraview capturing the identity of each cell as a one-hot encoded vector and a paraview capturing the cell-type composition of the 10 nearest neighbors. We prefix the names of the features (cell types) in the paraview to allow prediction of a cell type as a function of the number of cells with the same cell type in its neighborhood. We run Kasumi for each sample and store all results in the same database. We select a window size of 400px, and overlap of 50% and we require at least 20 cells per window. Windows with less than 20 cells will be ignored. Note that we are bypassing the modeling of the intraview and we are training only models predicting the cell type from the cell type composition in the neighborhood. If not defined otherwise (by defining a future::plan) Kasumi will run without parallelization. Consider defining a plan to speed up the modeling.
+
+You can skip this step by downloading the results databases generated for the manuscript and the corresponding results objects from Zenodo (<https://doi.org/10.5281/zenodo.14891956>) for reproducing the results from the manuscript.
+
+```{r}
+# future::plan(future::multisession, workers = 8)
+if(!file.exists("CTCLct400.sqm")){
+
+  as.character(spots) %>% walk(\(id){
+    ct <- all.cells.ctcl[[id]]
+    pos <- all.positions.ctcl[[id]]
+    
+    kasumi.views <- create_initial_view(ct) %>% add_paraview(pos, 10, family = "constant", prefix="p.")
+    
+    suppressWarnings(
+      run_kasumi(kasumi.views, pos, window=400, overlap=50, id, "CTCLct400.sqm", minu=20, bypass.intra=TRUE, sqlite_timeout = 250)
+    )
+  })
+  
+}
+
+```
+
+Alternatively, if working with marker abundance representations the view composition should be somewhat different. The intraview captures the marker abundances per cell and the paraview captures the weighted sum of the abundances in the broader tissue structure, e.g., in a radius of 100px. Here we also model the intraview since we want to also capture the marker relationships within each cell. The downstream analysis proceeds in a similar way as for the cell type scenario.
+
+```{r eval=FALSE}
+seq_along(spots) %>% walk(\(id){
+  expr <- all.cells.ctcl[[id]]
+  pos <- all.positions.ctcl[[id]]
+  
+  kasumi.views <- create_initial_view(expr) %>% add_paraview(pos, 100, family = "gaussian")
+  
+  suppressWarnings(
+    run_kasumi(kasumi.views, pos, window=400, overlap=50, id, "CTCLexpr400.sqm", minu=20)
+  )
+})
+```
+
+Collect the results, extract the relationship-based representation of windows, cluster and aggregate the clusters per sample. Filter non-persistent clusters.
+
+Note that the results of the Leiden clustering via the igraph package can be different for different versions of igraph. For the results reported in the manuscript igraph version 1.5.1 was used. Also, due to slight differences in implementation between the prototype and benchmarking implementation of Kasumi, and the R package implementation, the results may differ.
+
+In both cases, while the performance and the interpretation reported in the manuscript can be reproduced, the clustering parameters might require slight adjustment.
+
+```{r message=FALSE}
+# future::plan(future::multisession, workers = 8)
+
+kasumi.results <- collect_results("CTCLct400.sqm")
+
+# First representation - relationships
+kasumi.representation <- extract_representation(kasumi.results)
+
+# Second representation - clusters
+kasumi.clusters <- extract_clusters(kasumi.representation, "leiden", 0.4, 0.9)
+
+# Cluster composition
+kasumi.agg <- aggregate_clusters(kasumi.clusters)
+
+# Third representation - persistent cluster composition - 
+# clusters that are present in at least 5 samples
+persistent.clusters <- persistent_clusters(kasumi.agg, 5)
+kasumi.persistent <- kasumi.agg %>% select(id, all_of(persistent.clusters))
+
+```
+
+The Kasumi representation can be used for downstream unsupervised or supervised analysis. For example we can start by visualizing a lower dimensional map (PCA) of the representation to identify groups of samples.
+
+```{r}
+# Extract condition information
+target <- kasumi.persistent %>% mutate(id = str_remove(id, "sample")) %>% 
+  left_join(outcome %>% mutate(Spots = as.character(Spots)), by = c("id" = "Spots")) %>% pull(Groups)
+
+kasumi.pca <-prcomp(kasumi.persistent %>% select(-id), scale. = TRUE)
+
+to.plot <- data.frame(kasumi.pca$x[,c(1,2)]) %>% mutate(Condition = as.factor(target))
+
+ggplot(to.plot, aes(x = PC1, y = PC2, color = Condition)) + geom_point() + theme_classic()
+
+```
+
+In a supervise setting to evaluate whether the representation is associated with a clinical observation we can calculate the 10-fold cross validated performance of a linear classifier separating the samples into responders and non-responders based on the learned Kasumi representation. We can next estimate the importance of each cluster for the classification task by calculating the signed model reliance.
+
+```{r}
+
+# Run logistic regression
+kasumi.roc <- downstream_classify(kasumi.persistent, make.names(target))
+
+
+# Signed model reliance
+sMR(kasumi.persistent, as.factor(make.names(target)))
+```
+
+Guided by the outcome of the classification task and the importance of the clusters for predicting the condition, individual clusters can be explored for the underlying cell type relationship patterns they capture.
+
+```{r fig.height=5, fig.width=5}
+
+cluster.23  <- collect_kasumi_cluster(kasumi.clusters, "23", "CTCLct400.sqm")
+
+plot_improvement_stats(cluster.23, trim = 1)
+plot_interaction_heatmap(cluster.23, "paraview.10", trim = 1, cutoff = 0.5, clean = TRUE)
+plot_interaction_heatmap(cluster.23, "paraview.10", trim = 1, cutoff = 0.5, clean = TRUE, correlation = TRUE)
+
+```
+
+In more recent versions, Kasumi also offers the possibility to perform an analysis of the clusters of sliding windows across samples represented by the composition of cell types or markers (WCC) as an alternative to the relationship based representation. Kasumi stores information about the window composition in the results database. The steps to follow are same as above. The difference is only in the function used to collect the results.
+
+```{r eval = FALSE}
+kasumi.wcc <- collect_wcc("results_database.sqm")
+```
+
+Note that the databases available on Zenodo do not contain a window composition table since they were generated with an older version of Kasumi. If interested in reproducting the results from the manuscript related to WCC follow the analysis steps in the Kasumi implementation at <https://github.com/saezlab/kasumi_bench>.
+
+Here is the output of `sessionInfo()` at the point when this document was compiled:
+
+```{r info, echo=FALSE}
+sessionInfo()
+```

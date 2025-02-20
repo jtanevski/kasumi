@@ -15,6 +15,9 @@
 \alias{rename_view}
 \alias{collect_results}
 \alias{extract_signature}
+\alias{plot_improvement_stats}
+\alias{plot_view_contributions}
+\alias{plot_interaction_heatmap}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -24,6 +27,6 @@ below to see their documentation.
 \describe{
   \item{dplyr}{\code{\link[dplyr:reexports]{\%>\%}}}
 
-  \item{mistyR}{\code{\link[mistyR]{add_juxtaview}}, \code{\link[mistyR]{add_paraview}}, \code{\link[mistyR]{add_views}}, \code{\link[mistyR]{collect_results}}, \code{\link[mistyR]{create_initial_view}}, \code{\link[mistyR]{create_view}}, \code{\link[mistyR]{extract_signature}}, \code{\link[mistyR]{filter_views}}, \code{\link[mistyR]{remove_views}}, \code{\link[mistyR]{rename_view}}, \code{\link[mistyR]{select_markers}}}
+  \item{mistyR}{\code{\link[mistyR]{add_juxtaview}}, \code{\link[mistyR]{add_paraview}}, \code{\link[mistyR]{add_views}}, \code{\link[mistyR]{collect_results}}, \code{\link[mistyR]{create_initial_view}}, \code{\link[mistyR]{create_view}}, \code{\link[mistyR]{extract_signature}}, \code{\link[mistyR]{filter_views}}, \code{\link[mistyR]{plot_improvement_stats}}, \code{\link[mistyR]{plot_interaction_heatmap}}, \code{\link[mistyR]{plot_view_contributions}}, \code{\link[mistyR]{remove_views}}, \code{\link[mistyR]{rename_view}}, \code{\link[mistyR]{select_markers}}}
 }}
 

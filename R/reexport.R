@@ -30,7 +30,7 @@ mistyR::add_paraview
 #' @export
 mistyR::remove_views
 
-# from mistyR view-manioulators ----
+# from mistyR view-manipulators ----
 
 #' @importFrom mistyR filter_views
 #' @export
@@ -53,4 +53,18 @@ mistyR::collect_results
 #' @importFrom mistyR extract_signature
 #' @export
 mistyR::extract_signature
+
+# from mistyR plots
+
+#' @importFrom mistyR plot_improvement_stats
+#' @export
+mistyR::plot_improvement_stats
+
+#' @importFrom mistyR plot_view_contributions
+#' @export
+mistyR::plot_view_contributions
+
+#' @importFrom mistyR plot_interaction_heatmap
+#' @export
+mistyR::plot_interaction_heatmap
 
