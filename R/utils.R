@@ -40,13 +40,9 @@ leiden <- function(representation, minsim = 0.8, resolution = 0.8,
   withr::with_seed(
     seed,
     groups <-
-      igraph::graph.adjacency(sim %>% as.matrix(),
-        mode = "undirected", weighted = TRUE
-      ) %>%
-      igraph::cluster_leiden(
-        resolution_parameter = resolution,
-        n_iterations = -1
-      )
+      igraph::graph.adjacency(sim %>% proxy::as.matrix(),
+                      mode = "undirected", weighted = TRUE) %>%
+      igraph::cluster_leiden(resolution_parameter = resolution, n_iterations = -1)
   )
 
   return(groups$membership)

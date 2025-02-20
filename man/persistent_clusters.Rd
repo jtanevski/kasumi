@@ -8,4 +8,6 @@ persistent_clusters(kasumi.clusters, parameter = 0.1)
 }
 \description{
 Representation is either raw kasumi.clusters or aggregated kasumi.clusters
+The parameter is either a percentage if < 1 or a minimum number of samples
+when > 1.
 }

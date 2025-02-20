@@ -117,6 +117,8 @@ extract_clusters <- function(kasumi.representation,
 #' Identify persistent clusters
 #'
 #' Representation is either raw kasumi.clusters or aggregated kasumi.clusters
+#' The parameter is either a percentage if < 1 or a minimum number of samples
+#' when > 1.
 #'
 #' @export
 persistent_clusters <- function(kasumi.clusters, parameter = 0.1) {
@@ -141,19 +143,27 @@ persistent_clusters <- function(kasumi.clusters, parameter = 0.1) {
     colnames()
 }
 
+#' @noRd
+freq_repr <- function(labels) {
+  colSums(labels) / sum(labels)
+}
+
 #' Represent each sample by its cluster composition
 #' @param kasumi.clusters clusters calculated from the extracted representation
 #'
 #' @export
 aggregate_clusters <- function(kasumi.clusters) {
   # originally persistent clusters were removed after distribution
-  kasumi.clusters %>%
+  group.map <- kasumi.clusters %>%
     dplyr::select(-c(xcenter, ycenter)) %>%
     dplyr::group_by(id) %>%
-    dplyr::group_split(.keep = FALSE) %>%
-    purrr::map_dfr(~ colSums(.x) / sum(.x)) %>%
+    dplyr::group_split()
+
+  group.ids <- group.map %>% purrr::map_chr(~ .x$id[1])
+
+  group.map %>% purrr::map_dfr(~ .x %>% select(-id) %>% freq_repr()) %>%
     tibble::add_column(
-      id = kasumi.clusters %>% dplyr::pull(id) %>% unique(),
+      id = group.ids,
       .before = 1
     )
 }
