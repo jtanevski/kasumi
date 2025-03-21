@@ -8,6 +8,8 @@
 
 Kasumi is a method for the identification of spatially localized neighborhoods of intra- and intercellular relationships, persistent across samples and conditions. Kasumi learns compressed explainable representations of spatial omics samples while preserving relevant biological signals that are readily deployable for data exploration and hypothesis generation, facilitating translational tasks.
 
+![](fig.png)
+
 ## System Requirements
 
 **kasumi** requires a standard configuration and enough RAM to store the analyzed dataset and to support in-memory operations.
