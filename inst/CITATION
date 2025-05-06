@@ -2,13 +2,15 @@ citEntry(
     entry="article",
     author = c(person("Jovan", "Tanevski"),
            person("Loan", "Vulliard"),
-    		   person("Felix", "Hartmann"),
+           person("Miguel A.", "Ibarra-Arellano"),
+           person("Denis", "Schapiro"),
+    	   person("Felix J.", "Hartmann"),
            person("Julio", "Saez-Rodriguez")),
     title = "Learning tissue representation by identification of persistent local patterns in spatial omics data",
-    journal = "bioRxiv",
-    number = "2024.03.06.583691",
-    year = 2024,
-    url = "https://doi.org/10.1101/2024.03.06.583691",
+    journal = "Nature Communications",
+    number = "16",
+    year = 2025,
+    url = "https://doi.org/10.1038/s41467-025-59448-0",
 
-    textVersion = "Jovan Tanevski, Loan Vulliard, Felix Hartmann, Julio Saez-Rodriguez. Learning tissue representation by identification of persistent local patterns in spatial omics data. bioRxiv 2024.03.06.58369 (2024). https://doi.org/10.1101/2024.03.06.583691"
+    textVersion = "Jovan Tanevski, Loan Vulliard, Miguel A. Ibarra-Arellano, Denis Schapiro, Felix Hartmann, Julio Saez-Rodriguez. Learning tissue representation by identification of persistent local patterns in spatial omics data. Nature Communications 16, 4071 (2025). https://doi.org/10.1038/s41467-025-59448-0"
 )

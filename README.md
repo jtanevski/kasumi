@@ -39,6 +39,6 @@ The Kasumi implementation used to generate the results for the manuscript togeth
 
 ## Citation
 
-If you use **kasumi** for your research please cite the [following publication](https://doi.org/10.1101/2024.03.06.583691):
+If you use **kasumi** for your research please cite the [following publication](https://doi.org/10.1038/s41467-025-59448-0):
 
-> Jovan Tanevski, Loan Vulliard, Felix Hartmann, Julio Saez-Rodriguez. Learning tissue representation by identification of persistent local patterns in spatial omics data. bioRxiv 2024.03.06.58369 (2024). <https://doi.org/10.1101/2024.03.06.583691>
+> Jovan Tanevski, Loan Vulliard, Miguel A. Ibarra-Arellano, Denis Schapiro, Felix J. Hartmann, Julio Saez-Rodriguez. Learning tissue representation by identification of persistent local patterns in spatial omics data. Nat Communications 16, 4071 (2025). <https://doi.org/10.1038/s41467-025-59448-0>
